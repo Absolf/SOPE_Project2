@@ -1,0 +1,18 @@
+
+#include <stdio.h>
+#include <pthread.h>
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+
+int main(int argc, char* argv[]){
+
+    if (argc != 4) {
+        printf("--- CLIENT ---\n");
+        printf("Usage: %s <-t nsecs> fifoname \n", argv[0]);
+        exit(1);
+    }
+
+}
