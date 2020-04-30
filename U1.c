@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
     clock_gettime(CLOCK_MONOTONIC_RAW, &begin);
     int id_req = 0;
 
-    while(time_ms() < time_out){
+    while(time_out > time_ms()){
         pthread_t t_pid;
         infos_ts request;
 

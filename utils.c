@@ -57,6 +57,7 @@ void* un_thrd_handler(int server){
 
     infos_ts answer ;
     while (read(client, &answer, sizeof(answer)) <= 0) {
+        signal(SIGPIPE, SIG_IGN);
         usleep(10000);  /* while no server answer */
     }
     
