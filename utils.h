@@ -8,6 +8,10 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/file.h>
+#include <sys/syscall.h>
+
 
 extern struct timespec begin;
 
@@ -37,5 +41,10 @@ client_ts client_handler(char** args);
 server_ts server_handler(char** args);
 
 double time_ms();
+
+void log_maker(int id, pid_t pid, pid_t thread_id, int dur, int pos, char *op);
+
+void* un_thrd_handler(int server);
+
 
 #endif

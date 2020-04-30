@@ -6,6 +6,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <stdlib.h>
+
+#include "utils.h"
 
 
 
@@ -16,5 +19,5 @@ int main(int argc, char* argv[]){
         printf("Usage: %s <-t nsec>  fifoname\n", argv[0]);
         exit(1);
     }
-
+    return 0;
 }

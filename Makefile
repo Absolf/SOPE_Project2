@@ -14,10 +14,7 @@ all: U1 Q1
 U1: $(OBJ)
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
 	@echo $@
-
-Q1: $(OBJ)
-	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
-	@echo $@
+sdsds
 
 clean:
 	@rm *.o $(TARGETS)
