@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-
+int server;
 
 int main(int argc, char* argv[]){
 
