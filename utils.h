@@ -18,6 +18,8 @@ extern struct timespec begin;
 
 extern int server;
 
+extern char *server_dir;
+
 typedef struct {
     char *fifoname /*public server fifo channel*/;
     int secs; /* working time */
@@ -47,7 +49,7 @@ double time_ms();
 
 void log_maker(int id, pid_t pid, pid_t thread_id, int dur, int pos, char *op);
 
-void* un_thrd_handler(int server);
+void* un_thrd_handler(void * args);
 
 
 #endif

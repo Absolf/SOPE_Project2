@@ -12,10 +12,11 @@
 
 int server;
 
+char *server_dir;
+
 struct timespec begin;
 
 int main(int argc, char* argv[]){
-    int server;
     if (argc != 4) {
         printf("--- CLIENT ---\n");
         printf("Usage: %s <-t nsecs> fifoname \n", argv[0]);
@@ -23,6 +24,7 @@ int main(int argc, char* argv[]){
     }
 
     client_ts client = client_handler(argv);
+    server_dir = client.fifoname;
 
     server = -1;
 
@@ -42,12 +44,15 @@ int main(int argc, char* argv[]){
         pthread_t t_pid;
         infos_ts request;
 
-        request.dur = (rand() % (3-1+1)) +1;
+        request.dur = (rand() % (50-10+1)) +10;
         request.id = id_req++;
         request.pos -=1;
 
         pthread_create(&t_pid, NULL, un_thrd_handler, &request);
-        usleep(50000);
+        /*detach helps with a better paralelism by releasing the resources back to the system*/
+        pthread_detach(t_pid);
+        /*requests with 50ms interval*/
+        usleep(50000); 
     }
 
     exit(0);

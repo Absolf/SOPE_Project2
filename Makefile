@@ -15,5 +15,7 @@ U1: $(OBJ)
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
 	@echo $@
 
+	
+
 clean:
 	@rm *.o $(TARGETS)

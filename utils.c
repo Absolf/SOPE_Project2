@@ -51,56 +51,34 @@ void* un_thrd_handler(void * args){
     
     int client = open(clientfifo, O_RDONLY | O_NONBLOCK);
 
-    write(server, (infos_ts *) arg, sizeof(infos_ts));
-    log_maker(((infos_ts*) arg)->id, ((infos_ts*) arg)->pid, ((infos_ts*) arg)->thread_id, ((infos_ts*) arg)->dur, ((infos_ts*) arg)->pos, "IWANT");
+    write(server, (infos_ts *) args, sizeof(infos_ts));
+    log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "IWANT");
 
     infos_ts answer ;
-    while (read(client, &answer, sizeof(answer)) <= 0) {
-        signal(SIGPIPE, SIG_IGN);
-        usleep(10000);  /* while no server answer */
-    }
-    
-    log_maker(answer.id, getpid(), thread_id, answer.dur, answer.pos, (answer.pos != -1) ? "IAMIN" : "CLOSD");
-
-    close(client);
-    unlink(clientfifo);
-    return NULL;
-}
-
-
-void* qn_thrd_handler(int server){
-	void *arg = ((infos_ts*) arg);
-	pid_t thread_id;
-    thread_id = syscall(SYS_gettid);
-
-    infos_ts* request = (infos_ts*) arg;
-    log_maker(request->id, getpid(), thread_id, request->dur, request->pos, "RECVD");
-
-    /* fifo client path */
-    char fifo_path[64];
-    sprintf(fifo_path, "/tmp/%d.%d", request->pid, request->thread_id);
-    int client = open(fifo_path, O_WRONLY);
-
-	/*  trying initializing like this */
-    infos_ts answer;
-    answer.id = request->id;
-    answer.pid = getpid();
-    answer.thread_id = thread_id;
-    answer.dur = request->dur;
-	/* requesito da primeira ou segunda etapa? */
-    if (/* condition yet to figure out */) {
-        log_maker(request->id, getpid(), thread_id, request->dur, 1, "ENTER");
-
-        write(client, &answer, sizeof(infos_ts));
-        usleep(request->dur * 1000);
-        log_maker(request->id, getpid(), thread_id, request->dur, 1, "TIMUP");
+    int cont; /*Attempts to read from the server before consider it's closed*/
+    if(access(server_dir, F_OK) != -1){
+        infos_ts answer;
+        while (read(client, &answer, sizeof(answer)) <= 0 && cont < 3) {
+            usleep(10000);  /* while no server answer */
+            cont++;
+        }
+        if (cont >=3){
+            log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "FAILD");
+        }
+        else { 
+            log_maker(answer.id, getpid(), thread_id, answer.dur, answer.pos, (answer.pos != -1) ? "IAMIN" : "CLOSD");
+        }
     }
     else {
-        log_maker(request->id, getpid(), thread_id, request->dur, -1, "2LATE");
-        answer.pos = -1;
-        write(client, &answer, sizeof(infos_ts));
+        log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "FAILD");
     }
 
     close(client);
+
+    unlink(clientfifo);
+
     return NULL;
 }
+
+
+
