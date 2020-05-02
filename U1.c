@@ -38,11 +38,11 @@ void* un_thrd_handler(void * args){
     infos_ts answer ;
     int cont; /*Attempts to read from the server before consider it's closed*/
     if(access(server_dir, F_OK) != -1){
-        while (read(client, &answer, sizeof(answer)) <= 0 && cont < 3) {
+        while (read(client, &answer, sizeof(answer)) <= 0 && cont < 5) {
             usleep(10000);  /* while no server answer */
             cont++;
         }
-        if (cont >=3){
+        if (cont >=5){
             log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "FAILD");
         }
         else { 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]){
         pthread_t t_pid;
         infos_ts request;
 
-        request.dur = (rand() % (50-10+1)) +10;
+        request.dur = (rand() % (20-5+1)) +5;
         request.id = id_req++;
         request.pos -=1;
 
