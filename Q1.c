@@ -16,12 +16,12 @@ int server;
 
 struct timespec begin;
 
-void* qn_thrd_handler(void* arg){
+void* qn_thrd_handler(void* args){
 	pid_t thread_id;
 
     thread_id = syscall(SYS_gettid);
 
-    infos_ts* request = (infos_ts*) arg;
+    infos_ts* request = (infos_ts*) args;
     log_maker(request->id, getpid(), thread_id, request->dur, request->pos, "RECVD");
 
     /* fifo client path */
@@ -36,6 +36,7 @@ void* qn_thrd_handler(void* arg){
     answer.thread_id = thread_id;
     answer.dur = request->dur;
     if (time_ms() + request->dur <= time_out) {
+
         log_maker(request->id, getpid(), thread_id, request->dur, 1, "ENTER");
 
         write(client, &answer, sizeof(infos_ts));
@@ -63,12 +64,12 @@ int main(int argc, char** argv){
 	printf("--- SERVER 1 ---\n");
     server_ts server = server_handler(argv);
     
-    long int time_out = server.secs * 1000;
 	
     if (mkfifo(server.fifoname, 0660) != 0) {
-        printf("Error on mkfifosdfsdf \n");
+        printf("Error on mkfifo\n");
         exit(1);
     }
+    time_out = server.secs * 1000;
 	    
     clock_gettime(CLOCK_MONOTONIC_RAW, &begin);
 	int file = open(server.fifoname, O_RDONLY | O_NONBLOCK);
