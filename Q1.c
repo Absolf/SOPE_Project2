@@ -37,10 +37,14 @@ void* qn_thrd_handler(void* args){
     answer.dur = request->dur;
 
     if (time_ms() + request->dur < time_out) {
-        log_maker(request->id, getpid(), thread_id, request->dur, 1, "ENTER");
+        answer.pos = 1;
 
         write(client, &answer, sizeof(infos_ts));
+
+        log_maker(request->id, getpid(), thread_id, request->dur, 1, "ENTER");
+
         usleep(request->dur * 1000);
+
         log_maker(request->id, getpid(), thread_id, request->dur, 1, "TIMUP");
     }
     else {
@@ -61,30 +65,32 @@ int main(int argc, char** argv){
         exit(1);
     }
 	
-	printf("--- SERVER 1 ---\n");
     server_ts server = server_handler(argv);
     
 	
     if (mkfifo(server.fifoname, 0660) != 0) {
-<<<<<<< HEAD
-        printf("Error on mkfifo\n");
-=======
         printf("Error on mkfifo \n");
->>>>>>> 4abd315c7f9d4f1abc9e7056e3b9732f9a6cd2e7
         exit(1);
     }
+    int file = open(server.fifoname, O_RDONLY | O_NONBLOCK);
+
     time_out = server.secs * 1000;
 	    
     clock_gettime(CLOCK_MONOTONIC_RAW, &begin);
-	int file = open(server.fifoname, O_RDONLY | O_NONBLOCK);
     
 	while (time_out > time_ms()) {
-        server_ts request;
+        infos_ts request;
 		pthread_t t_pid;
         while (read(file, &request, sizeof(server_ts)) <= 0  && time_ms() < time_out) {
             usleep(50000);
         }
+
+        if(time_out <= time_ms()) break;
+
+        pthread_t thread_id;
         pthread_create(&t_pid, NULL,qn_thrd_handler , &request);
+         /*detach helps with a better paralelism by releasing the resources back to the system*/
+        pthread_detach(thread_id);
     }
 
     close(file);
