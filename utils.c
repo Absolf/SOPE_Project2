@@ -69,39 +69,4 @@ void* un_thrd_handler(int server){
 }
 
 
-void* qn_thrd_handler(int server){
-	void *arg = ((infos_ts*) arg);
-	pid_t thread_id;
-    thread_id = syscall(SYS_gettid);
 
-    infos_ts* request = (infos_ts*) arg;
-    log_maker(request->id, getpid(), thread_id, request->dur, request->pos, "RECVD");
-
-    /* fifo client path */
-    char fifo_path[64];
-    sprintf(fifo_path, "/tmp/%d.%d", request->pid, request->thread_id);
-    int client = open(fifo_path, O_WRONLY);
-
-	/*  trying initializing like this */
-    infos_ts answer;
-    answer.id = request->id;
-    answer.pid = getpid();
-    answer.thread_id = thread_id;
-    answer.dur = request->dur;
-	/* requesito da primeira ou segunda etapa? */
-    if (/* condition yet to figure out */) {
-        log_maker(request->id, getpid(), thread_id, request->dur, 1, "ENTER");
-
-        write(client, &answer, sizeof(infos_ts));
-        usleep(request->dur * 1000);
-        log_maker(request->id, getpid(), thread_id, request->dur, 1, "TIMUP");
-    }
-    else {
-        log_maker(request->id, getpid(), thread_id, request->dur, -1, "2LATE");
-        answer.pos = -1;
-        write(client, &answer, sizeof(infos_ts));
-    }
-
-    close(client);
-    return NULL;
-}
