@@ -35,12 +35,11 @@ void log_maker(int id, pid_t pid, pid_t thread_id, int dur, int pos, char *op) {
 }
 
 
-void* un_thrd_handler(int server){
-    void *arg = ((infos_ts*) arg);
+void* un_thrd_handler(void * args){
     pid_t thread_id;
     thread_id = syscall(SYS_gettid);  /* Allow calls from other threads than the main one. Possible error with clang */
-    ((infos_ts*) arg)->thread_id = thread_id;
-    ((infos_ts*) arg)->pid = getpid();
+    ((infos_ts*) args)->thread_id = thread_id;
+    ((infos_ts*) args)->pid = getpid();
 
     char clientfifo[64];
     sprintf(clientfifo, "/tmp/%d.%d", getpid(), thread_id);

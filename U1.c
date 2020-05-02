@@ -7,7 +7,10 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 
+
 #include "utils.h"
+
+int server;
 
 struct timespec begin;
 
@@ -43,7 +46,7 @@ int main(int argc, char* argv[]){
         request.id = id_req++;
         request.pos -=1;
 
-        pthread_create(&t_pid, NULL, un_thrd_handler(server), &request);
+        pthread_create(&t_pid, NULL, un_thrd_handler, &request);
         usleep(50000);
     }
 

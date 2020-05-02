@@ -11,9 +11,12 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <sys/syscall.h>
+#include <signal.h>
 
 
 extern struct timespec begin;
+
+extern int server;
 
 typedef struct {
     char *fifoname /*public server fifo channel*/;
