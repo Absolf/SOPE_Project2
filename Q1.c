@@ -44,6 +44,6 @@ int main(int argc, char* argv[]){
     }
 
     close(file);
-
+	unlink(server.fifoname);
     exit(0);
 }
