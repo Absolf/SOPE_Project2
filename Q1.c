@@ -35,7 +35,7 @@ void* qn_thrd_handler(void* arg){
     answer.pid = getpid();
     answer.thread_id = thread_id;
     answer.dur = request->dur;
-    if (time_ms() + request->dur <= time_out) {
+    if (time_ms() + request->dur < time_out) {
         log_maker(request->id, getpid(), thread_id, request->dur, 1, "ENTER");
 
         write(client, &answer, sizeof(infos_ts));
@@ -66,7 +66,7 @@ int main(int argc, char** argv){
     long int time_out = server.secs * 1000;
 	
     if (mkfifo(server.fifoname, 0660) != 0) {
-        printf("Error on mkfifosdfsdf \n");
+        printf("Error on mkfifo \n");
         exit(1);
     }
 	    
