@@ -29,12 +29,10 @@ while getopts ":q:u:f:" opt; do
   esac
 done
 
-dir = logs
-
-if [[ ! -e $dir ]]; then
-    mkdir $dir
-elif [[ ! -d $dir ]]; then
-    echo "$dir already exists but is not a directory" 1>&2
+if [[ ! -e logs ]]; then
+    mkdir logs
+elif [[ ! -d logs ]]; then
+    echo "logs already exists but is not a directory" 1>&2
 fi
 echo "Setting server timeout to "$serverTime"sec"
 echo "Setting client timeout to "$clientTime"sec"
