@@ -16,6 +16,51 @@ char *server_dir;
 
 struct timespec begin;
 
+void* un_thrd_handler(void * args){
+    pid_t thread_id;
+    thread_id = syscall(SYS_gettid);  /* Allow calls from other threads than the main one. Possible error with clang */
+    ((infos_ts*) args)->thread_id = thread_id;
+    ((infos_ts*) args)->pid = getpid();
+
+    char clientfifo[64];
+    sprintf(clientfifo, "/tmp/%d.%d", getpid(), thread_id);
+
+    if (mkfifo(clientfifo, 0660) != 0) {
+        printf("error: mkfifo()\n");
+        exit(1);
+    }
+    
+    int client = open(clientfifo, O_RDONLY | O_NONBLOCK);
+
+    write(server, (infos_ts *) args, sizeof(infos_ts));
+    log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "IWANT");
+
+    infos_ts answer ;
+    int cont; /*Attempts to read from the server before consider it's closed*/
+    if(access(server_dir, F_OK) != -1){
+        while (read(client, &answer, sizeof(answer)) <= 0 && cont < 3) {
+            usleep(10000);  /* while no server answer */
+            cont++;
+        }
+        if (cont >=3){
+            log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "FAILD");
+        }
+        else { 
+            log_maker(answer.id, getpid(), thread_id, answer.dur, answer.pos, (answer.pos != -1) ? "IAMIN" : "CLOSD");
+        }
+    }
+    else {
+        log_maker(((infos_ts*) args)->id, ((infos_ts*) args)->pid, ((infos_ts*) args)->thread_id, ((infos_ts*) args)->dur, ((infos_ts*) args)->pos, "FAILD");
+    }
+
+    close(client);
+
+    unlink(clientfifo);
+
+    return NULL;
+}
+
+
 int main(int argc, char* argv[]){
     if (argc != 4) {
         printf("--- CLIENT ---\n");

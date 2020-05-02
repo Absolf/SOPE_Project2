@@ -6,13 +6,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#include <pthread.h>
 
 #include "utils.h"
 
+int server;
 
 long int time_out;
-
-int server;
 
 struct timespec begin;
 
@@ -87,10 +87,9 @@ int main(int argc, char** argv){
 
         if(time_out <= time_ms()) break;
 
-        pthread_t thread_id;
         pthread_create(&t_pid, NULL,qn_thrd_handler , &request);
          /*detach helps with a better paralelism by releasing the resources back to the system*/
-        pthread_detach(thread_id);
+        pthread_detach(t_pid);
     }
 
     close(file);

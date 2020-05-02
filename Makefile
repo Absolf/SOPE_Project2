@@ -1,7 +1,7 @@
 
 CC = gcc
-CFLAGS = -Wall -pthread
-DEPS = utils.h
+CFLAGS = -Wall -pthread -pedantic
+DEPS = util.h
 OBJ = utils.o
 TARGETS = U1 Q1
 
@@ -11,14 +11,18 @@ all: U1 Q1
 	@$(CC) $(CFLAGS) -c -o $@ $<
 	@echo $@
 
-U1: $(OBJ)
-	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
-	@echo $@
-
 Q1: $(OBJ)
+	@echo "Compiling $@ ..."
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
-	@echo $@
-	
+	@echo "Successfully compiled!"
+	@echo "Run with ./$@"
+
+U1: $(OBJ)
+	@echo "Compiling $@ ..."
+	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
+	@echo "Successfully compiled!"
+	@echo "Run with ./$@"
+
 test: all
 	@echo "Starting Tests ..."
 	@touch result.log
