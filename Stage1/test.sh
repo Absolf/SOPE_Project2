@@ -41,7 +41,6 @@ echo "SERVER/CLIENT RUNNING ..."
 ./Q1 -t $serverTime "$fifoname" > logs/q1.log 2> logs/q1.err &  # Un <-t nsecs> fifoname
 P1=$!
 
-echo "$fifoname"
 ./U1 -t $clientTime "$fifoname" > logs/u1.log 2> logs/u1.err &   # Qn <-t nsecs> [-l nplaces] [-n nthreads] fifoname
 P2=$!
 wait $P1 $P2
@@ -82,7 +81,7 @@ fi
 
 cd ..
 # comment this line if you wish to keep the log files (debugging purposes)
-#rm -rf logs
+rm -rf logs
 
 if [[ $valid1 -eq 1 && $valid2 -eq 1 ]] ; then
   exit 0;
