@@ -17,7 +17,7 @@ char *server_dir;
 struct timespec begin;
 
 void* un_thrd_handler(void * args){
-    pid_t thread_id;
+    pthread_t thread_id;
     thread_id = pthread_self();  /* Allow calls from other threads than the main one. Possible error with clang */
     ((infos_ts*) args)->thread_id = thread_id;
     ((infos_ts*) args)->pid = getpid();
