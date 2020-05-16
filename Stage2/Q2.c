@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <pthread.h>
-
+#include <semaphore.h>
 #include "utils.h"
 
 int server;

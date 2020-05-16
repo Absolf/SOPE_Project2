@@ -35,6 +35,62 @@ void log_maker(int id, pid_t pid, pid_t thread_id, int dur, int pos, char *op) {
     write(STDOUT_FILENO, msg, strlen(msg));
 }
 
+//Q2 structures and aux functions to the queue
+typedef struct {
+    int begin;
+    int end;
+    int lenght;
+    int max_lenght;
+    int* queue;
+} spots_ts;
+
+spots_ts new_spots(int max_lenght){
+    spots_ts* spots;
+    spots.lenght = 0;
+    spots.max_lenght = max_lenght;
+    spots.end = max_lenght--;
+    spots.begin = 0;
+    spots.queu = (int*)malloc(max_size * sizeof(int));
+    return spots;
+}
+
+bool empty(spots_ts* spot){
+    if (spot->lenght == 0){
+        return true;
+    }
+    return false;
+}
+
+bool pushable(spots_ts* spots, int places){
+    if((spots->lenght == spots->max_lenght)){
+        return false;
+    }
+    spots->end = (spots->end +1) % spots->max_lenght;
+    spots->queue[spots->end] = places;
+    spots->lenght += 1;
+    return true 
+}
+
+int pop(spots_ts* spots){
+    int aux = 0;
+    if(!empty(spots)){
+        aux = spots->queue[spots->begin];
+        spots->begin = (spots->begin +1)% spots->max_lenght;
+        spots->lenght -= 1 ;
+    }  
+    return aux;
+}
+
+int filler(spots_ts * spots){
+    int i = 1;
+    while(i <= spots->max_lenght){
+        if(!pushable(spots, i))
+            return i
+        i++;
+    }
+    return 0;
+}
+
 
 
 

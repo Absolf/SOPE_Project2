@@ -13,22 +13,11 @@
 #include <sys/syscall.h>
 #include <signal.h>
 
-
-
-
-
-
-
-
-
-
-
-
 extern struct timespec begin;
 
 extern int server;
 
-
+/* Q1 Structures and auxiliar functions*/ 
 
 typedef struct {
     char *fifoname /*public server fifo channel*/;
@@ -51,6 +40,8 @@ typedef struct {
     int pos; /* client position given by the server */
 } infos_ts;
 
+
+
 client_ts client_handler(char** args);
 
 server_ts server_handler(char** args);
@@ -58,5 +49,26 @@ server_ts server_handler(char** args);
 double time_ms();
 
 void log_maker(int id, pid_t pid, pid_t thread_id, int dur, int pos, char *op);
+
+
+/* Q2 structures and auxiliar functions to the queue of spots to request/be requested */
+typedef struct {
+    int begin;
+    int end;
+    int lenght;
+    int max_lenght;
+    int* queue;
+} spots_ts;
+
+spots_ts new_spots(int max_lenght);
+
+int empty(spots_ts* spot);
+
+int pushable(spots_ts* spots, int places);
+
+int pop(spots_ts* spots);
+
+int charge(spots_ts * spots);
+
 
 #endif
