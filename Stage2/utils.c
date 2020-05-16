@@ -18,9 +18,9 @@ server_ts server_handler(int argc, char **args) {
     int aux = 3;
     while(aux < argc-1){
         if(strcmp("-l", args[aux]) == 0)
-            handler.places = atoi[args[aux + 1]];
+            handler.places = atoi(args[aux + 1]);
         else if(strcmp("-n", args[aux]) == 0)
-            handler.threads = atoi[args[aux + 1]];
+            handler.threads = atoi(args[aux + 1]);
         aux++;   
     }
     handler.fifoname = args[argc-1];
@@ -44,21 +44,14 @@ void log_maker(int id, pid_t pid, pid_t thread_id, int dur, int pos, char *op) {
 }
 
 //Q2 structures and aux functions to the queue
-typedef struct {
-    int begin;
-    int end;
-    int lenght;
-    int max_lenght;
-    int* queue;
-} spots_ts;
 
 spots_ts new_spots(int max_lenght){
-    spots_ts* spots;
+    spots_ts spots;
     spots.lenght = 0;
     spots.max_lenght = max_lenght;
     spots.end = max_lenght--;
     spots.begin = 0;
-    spots.queu = (int*)malloc(max_size * sizeof(int));
+    spots.queue = (int*) malloc(max_lenght * sizeof(int));
     return spots;
 }
 
@@ -76,7 +69,7 @@ bool pushable(spots_ts* spots, int places){
     spots->end = (spots->end +1) % spots->max_lenght;
     spots->queue[spots->end] = places;
     spots->lenght += 1;
-    return true 
+    return true;
 }
 
 int pop(spots_ts* spots){
@@ -93,7 +86,7 @@ int filler(spots_ts * spots){
     int i = 1;
     while(i <= spots->max_lenght){
         if(!pushable(spots, i))
-            return i
+            return i;
         i++;
     }
     return 0;

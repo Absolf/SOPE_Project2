@@ -11,13 +11,13 @@ all: U2 Q2
 	@$(CC) $(CFLAGS) -c -o $@ $<
 	@echo $@
 
-Q1: $(OBJ)
+Q2: $(OBJ)
 	@echo "Compiling $@ ..."
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
 	@echo "Successfully compiled!"
 	@echo "Run with ./$@"
 
-U1: $(OBJ)
+U2: $(OBJ)
 	@echo "Compiling $@ ..."
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
 	@echo "Successfully compiled!"

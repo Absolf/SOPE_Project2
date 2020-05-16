@@ -12,6 +12,7 @@
 #include <sys/file.h>
 #include <sys/syscall.h>
 #include <signal.h>
+#include <stdbool.h>
 
 extern struct timespec begin;
 
@@ -62,13 +63,13 @@ typedef struct {
 
 spots_ts new_spots(int max_lenght);
 
-int empty(spots_ts* spot);
+bool empty(spots_ts* spot);
 
-int pushable(spots_ts* spots, int places);
+bool pushable(spots_ts* spots, int places);
 
 int pop(spots_ts* spots);
 
-int charge(spots_ts * spots);
+int filler(spots_ts * spots);
 
 
 #endif

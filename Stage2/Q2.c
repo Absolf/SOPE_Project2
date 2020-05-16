@@ -35,7 +35,7 @@ void* qn_thrd_handler(void* args){
 
     infos_ts request;
 
-    memccpy(& request, ((infos_ts*) arg), sizeof(infos_ts));
+    memcpy(&request, ((infos_ts*) args), sizeof(infos_ts));
     //request
     log_maker(request.id, getpid(), thread_id, request.dur, request.pos, "RECVD");
 
@@ -43,7 +43,7 @@ void* qn_thrd_handler(void* args){
     char fifo_path[128];
     sprintf(fifo_path, "/tmp/%d.%d", request.pid, request.thread_id);
     /*attempt to open private fifo, sending GAVUP on failure*/
-    int client = open(client_fifo, O_WRONLY);
+    int client = open(fifo_path, O_WRONLY);
 
     if(client < 0){
         fprintf(stderr, "Error: attempt to open private fifo with request= %d\n", request.id);
@@ -81,7 +81,7 @@ void* qn_thrd_handler(void* args){
         //can't stablish conection with the client
         if(aux_answer < 0){
             fprintf(stderr, "Error: private fifo request [%d] Accepted! \n", request.id);
-            log_maker(answer.id, answer.pid, answer.thread_id, answer.pos, "GAVUP");
+            log_maker(answer.id, answer.pid, answer.thread_id, answer.dur, answer.pos, "GAVUP");
             close(client);
             //thread sync
             if(thread_flag) 
@@ -97,10 +97,10 @@ void* qn_thrd_handler(void* args){
         log_maker(answer.id, getpid(), thread_id, answer.dur, answer.pos, "TIMUP");
     }
     else {
-        answer.pos = -1 // This means the closure of a WC
+        answer.pos = -1; // This means the closure of a WC
         if(aux_answer < 0){
             fprintf(stderr, "Error: private fifo request [%d] Denied! \n", request.id);
-            log_maker(answer.id, answer.pid, answer.thread_id, answer.pos, "GAVUP");
+            log_maker(answer.id, answer.pid, answer.thread_id, answer.dur, answer.pos, "GAVUP");
             close(client);
             //thread SYNC
             if (thread_flag)
@@ -113,9 +113,9 @@ void* qn_thrd_handler(void* args){
         sem_post(&nthreads);
     if(spots_flag){
         pthread_mutex_lock(&mut_init);
-        push(&spots, aux_spot);
+        pushable(&spots, aux_spot);
         pthread_mutex_unlock(&mut_init);
-        sem_post(&nplaces);
+        sem_post(&nspots);
     }
     close(client);
     return NULL;
@@ -153,7 +153,7 @@ int main(int argc, char** argv){
     }
     if(spots_flag){
         sem_init(&nspots, 0 , server.places);
-        spots = new_spots(sever.places);
+        spots = new_spots(server.places);
         filler(&spots);
     }
     /* end of syncronization */
