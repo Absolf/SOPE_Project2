@@ -44,7 +44,7 @@ typedef struct {
 
 client_ts client_handler(char** args);
 
-server_ts server_handler(char** args);
+server_ts server_handler(int argc, char** args);
 
 double time_ms();
 

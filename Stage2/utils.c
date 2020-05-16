@@ -3,19 +3,27 @@
 
 client_ts client_handler(char **args) {
     client_ts handler;
-
     handler.secs = atoi(args[2]);
     handler.fifoname = args[3];
-
     return handler;
 }
 
-server_ts server_handler(char **args) {
+server_ts server_handler(int argc, char **args) {
     server_ts handler;
     handler.secs = atoi(args[2]);
     handler.places = 0;
     handler.threads = 0;
     handler.fifoname = args[3];
+
+    int aux = 3;
+    while(aux < argc-1){
+        if(strcmp("-l", args[aux]) == 0)
+            handler.places = atoi[args[aux + 1]];
+        else if(strcmp("-n", args[aux]) == 0)
+            handler.threads = atoi[args[aux + 1]];
+        aux++;   
+    }
+    handler.fifoname = args[argc-1];
 
     return handler;
 }
