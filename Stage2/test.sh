@@ -12,12 +12,16 @@ NC='\033[0m' # No Color
 serverTime=10
 clientTime=15
 fifoname='fifo.server'
+threads=0
+places=0
 
-while getopts ":q:u:f:" opt; do
+while getopts ":q:u:f:n:l" opt; do
   case $opt in
     q) serverTime=$OPTARG;;
     u) clientTime=$OPTARG;;
     f) fifoname=$OPTARG;;
+    n) threads=$OPTARG;;
+    l) places=$OPTARG;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
@@ -36,14 +40,15 @@ elif [[ ! -d logs ]]; then
 fi
 echo "Setting server timeout to "$serverTime"sec"
 echo "Setting client timeout to "$clientTime"sec"
+echo "Setting max threads to "$threads""
+echo "Setting max places to "$places""
 echo "SERVER/CLIENT RUNNING ..."
 
-./Q1 -t $serverTime "$fifoname" > logs/q1.log 2> logs/q1.err &  # Un <-t nsecs> fifoname
+./Q2 -t $serverTime -n "$threads" -l "$places" "$fifoname" > logs/q2.log 2> logs/q2.err &  # Un <-t nsecs> fifoname
 P1=$!
-
-./U1 -t $clientTime "$fifoname" > logs/u1.log 2> logs/u1.err &   # Qn <-t nsecs> [-l nplaces] [-n nthreads] fifoname
+./U2 -t $clientTime "$fifoname" > logs/u2.log 2> logs/u2.err &   # Qn <-t nsecs> [-l nplaces] [-n nthreads] fifoname
 P2=$!
-wait $P1 $P2
+wait 
 echo "END OF SERVER/CLIENT"
 
 cd logs || exit
@@ -57,6 +62,7 @@ nCLOSD=`grep CLOSD u1.log | wc -l`
 
 nIAMIN=`grep IAMIN u1.log | wc -l`
 nENTER=`grep ENTER q1.log | wc -l`
+nTIMUP=`grep TIMUP q2.log | wc -l`
 
 echo "Requests sent: $nREQST"
 echo "Failed requests: $nFAILD"
@@ -64,26 +70,34 @@ echo "Gave up requests: $nGAVUP"
 
 valid1=0;
 valid2=0;
+valid3=0;
 
 if  [ $n2LATE -eq $nCLOSD ] ; then
   echo -e "${GREEN}[PASSED] ${NC}2LATE - too late requests: $n2LATE"
   valid1=1;
 else
-  echo -e "${RED}[FAILED] ${NC}2LATE"
+  echo -e "${RED}[FAILED] ${NC}2LATE - 2LATE=$n2LATE | CLOSD=$nCLOSD "
 fi
 
 if  [ $nIAMIN -eq $nENTER ] ; then
   echo -e "${GREEN}[PASSED] ${NC}ENTER - accepted requests: $nENTER"
   valid2=1;
 else
-  echo -e "${RED}[FAILED] ${NC}ENTER"
+  echo -e "${RED}[FAILED] ${NC}ENTER - IAMIN=$nIAMIN | ENTER=$nENTER"
+fi
+
+if  [ $nTIMUP -eq $nENTER ] ; then
+  echo -e "${GREEN}[PASSED] ${NC}TIMEUP - fulfilled requests: $nTIMUP"
+  valid3=1;
+else
+  echo -e "${RED}[FAILED] ${NC}TIMEUP - TIMUP=$nTIMUP | ENTER=$nENTER"
 fi
 
 cd ..
 # comment this line if you wish to keep the log files (debugging purposes)
 rm -rf logs
 
-if [[ $valid1 -eq 1 && $valid2 -eq 1 ]] ; then
+if [[ $valid1 -eq 1 && $valid2 -eq 1 && $valir3 -eq 1 ]] ; then
   exit 0;
 else
   exit 1;
