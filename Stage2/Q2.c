@@ -21,6 +21,7 @@ static pthread_mutex_t mut_init = PTHREAD_MUTEX_INITIALIZER;
 
 int server;
 
+
 long int time_out;
 
 struct timespec begin;
