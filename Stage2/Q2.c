@@ -146,16 +146,25 @@ int main(int argc, char** argv){
     if(server.places)
         spots_flag = 1;
 
+
+    /* Thread syncronization */
     if(thread_flag){
-        sem_init(&ntrheads, 0 , server.threads);
+        sem_init(&nthreads, 0 , server.threads);
     }
+    if(spots_flag){
+        sem_init(&nspots, 0 , server.places);
+        spots = new_spots(sever.places);
+        filler(&spots);
+    }
+    /* end of syncronization */
+
     clock_gettime(CLOCK_MONOTONIC_RAW, &begin);
     
 	while (time_out > time_ms()) {
         infos_ts request;
 		pthread_t t_pid;
         while (read(file, &request, sizeof(server_ts)) <= 0  && time_ms() < time_out) {
-            usleep(50000);
+            usleep(1000);
         }
 
         if(time_out <= time_ms()) break;
@@ -166,6 +175,9 @@ int main(int argc, char** argv){
     }
 
     close(file);
-	unlink(server.fifoname);
+    int unlinker = unlink(server.fifoname);
+    if(unlinker < 0)
+        perror("Error: unlinked public FIFO");
+
     exit(0);
 }
