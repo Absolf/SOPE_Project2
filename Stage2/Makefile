@@ -1,9 +1,9 @@
 
 CC = gcc
-CFLAGS = -Wall -pthread -pedantic
+CFLAGS = -Wall -pthread
 DEPS = util.h
 OBJ = utils.o
-TARGETS = U2 Q2
+TARGETS = U2 Q2 test
 
 all: U2 Q2
 
@@ -11,13 +11,13 @@ all: U2 Q2
 	@$(CC) $(CFLAGS) -c -o $@ $<
 	@echo $@
 
-Q2: $(OBJ)
+U2: $(OBJ)
 	@echo "Compiling $@ ..."
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
 	@echo "Successfully compiled!"
 	@echo "Run with ./$@"
 
-U2: $(OBJ)
+Q2: $(OBJ)
 	@echo "Compiling $@ ..."
 	@$(CC) $(CFLAGS) -o $@ $@.c $(OBJ) -lm
 	@echo "Successfully compiled!"

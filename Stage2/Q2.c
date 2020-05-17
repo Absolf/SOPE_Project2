@@ -6,10 +6,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#include <pthread.h>
 #include <semaphore.h>
 #include "utils.h"
+#include <stdlib.h>
 
+#include "places.h"
 
 static spots_ts spots; /* queue with free spots */
 static int thread_flag = 0;  /* flag that will be activated if thread numbers has a limit */
@@ -19,17 +20,13 @@ static sem_t nspots;   /* semaphore that handles the ammount of filled spots */
 
 static pthread_mutex_t mut_init = PTHREAD_MUTEX_INITIALIZER;
 
-int server;
-
 long int time_out;
 
 struct timespec begin;
 
 
-
 void* qn_thrd_handler(void* args){
 	pthread_t thread_id;
-
     pthread_detach(thread_id = pthread_self()); // auto-detach
     //thread_id = syscall(SYS_gettid);
 
@@ -41,17 +38,18 @@ void* qn_thrd_handler(void* args){
 
     /* fifo client path */
     char fifo_path[128];
-    sprintf(fifo_path, "/tmp/%d.%d", request.pid, request.thread_id);
+    sprintf(fifo_path, "/tmp/%d.%ld", request.pid, request.thread_id);
     /*attempt to open private fifo, sending GAVUP on failure*/
-    int client = open(fifo_path, O_WRONLY);
+    int client;
 
-    if(client < 0){
-        fprintf(stderr, "Error: attempt to open private fifo with request= %d\n", request.id);
+    if((client = open(fifo_path, O_WRONLY)) < 0){
+        fprintf(stderr, "Error: attempt to open private fifo with request %d\n", request.id);
         log_maker(request.id, getpid(), thread_id, request.dur, request.pos, "GAVUP");
 
         //checking thread limit
-        if(thread_flag) 
+        if(thread_flag){
             sem_post(&nthreads);
+        }
         return NULL;
     }
 
@@ -65,27 +63,27 @@ void* qn_thrd_handler(void* args){
     
     // Server will give 1 for every request in case we have infinit spots, otherwise will give the next place inside the queue
 
-    int aux_spot = 1;
-    if(spots_flag){
+    int place = 1;
+    if (thread_flag) {
         sem_wait(&nspots);
         pthread_mutex_lock(&mut_init);
-        aux_spot = pop(&spots);
+        place = pop_front(&spots);
         pthread_mutex_unlock(&mut_init);
     }
-    
+    answer.pos = place;
     //Here the server gives the propper answer
-    answer.pos = aux_spot;
-    int aux_answer = write(client, &answer, sizeof(infos_ts));
     //if the wanted time doesn't exceed the execution time, then go
     if (time_ms() + request.dur < time_out) {
         //can't stablish conection with the client
-        if(aux_answer < 0){
+        if(write(client, &answer, sizeof(infos_ts)) < 0){
             fprintf(stderr, "Error: private fifo request [%d] Accepted! \n", request.id);
             log_maker(answer.id, answer.pid, answer.thread_id, answer.dur, answer.pos, "GAVUP");
             close(client);
             //thread sync
-            if(thread_flag) 
+            if(thread_flag){
                 sem_post(&nthreads);
+            }
+                
             return NULL;
         }
         //There isn't any communication with the private fifo
@@ -98,7 +96,7 @@ void* qn_thrd_handler(void* args){
     }
     else {
         answer.pos = -1; // This means the closure of a WC
-        if(aux_answer < 0){
+        if(write(client, &answer, sizeof(infos_ts)) < 0){
             fprintf(stderr, "Error: private fifo request [%d] Denied! \n", request.id);
             log_maker(answer.id, answer.pid, answer.thread_id, answer.dur, answer.pos, "GAVUP");
             close(client);
@@ -113,7 +111,7 @@ void* qn_thrd_handler(void* args){
         sem_post(&nthreads);
     if(spots_flag){
         pthread_mutex_lock(&mut_init);
-        pushable(&spots, aux_spot);
+        pushable(&spots, place);
         pthread_mutex_unlock(&mut_init);
         sem_post(&nspots);
     }
@@ -123,7 +121,7 @@ void* qn_thrd_handler(void* args){
 
 
 int main(int argc, char** argv){
-	if (argc <= 3 || argc >=7) {
+	if (argc < 4 || argc > 8) {
         printf("--- SERVER 2--- \n");
         printf("Usage: %s [-t nsec] [-l nplaces] [-t nthreads] [fifoname] \n", argv[0]);
         exit(1);
@@ -137,14 +135,16 @@ int main(int argc, char** argv){
         exit(1);
     }
 
+    printf("fifoname %s", server.fifoname);
     int file = open(server.fifoname, O_RDONLY | O_NONBLOCK);
-
-    time_out = server.secs * 1000;
 	    
-    if(server.threads)
+    if(server.threads){
         thread_flag = 1;
-    if(server.places)
+    }
+    if(server.places){
         spots_flag = 1;
+    }
+        
 
 
     /* Thread syncronization */
@@ -157,26 +157,26 @@ int main(int argc, char** argv){
         filler(&spots);
     }
     /* end of syncronization */
-
+    time_out = server.secs * 1000;
     clock_gettime(CLOCK_MONOTONIC_RAW, &begin);
     
 	while (time_out > time_ms()) {
         infos_ts request;
-		pthread_t t_pid;
         while (read(file, &request, sizeof(server_ts)) <= 0  && time_ms() < time_out) {
             usleep(1000);
         }
 
         if(time_out <= time_ms()) break;
 
+        if(thread_flag){
+            sem_wait(&nthreads);
+        }
+        pthread_t t_pid;
         pthread_create(&t_pid, NULL,qn_thrd_handler , &request);
-         /*detach helps with a better paralelism by releasing the resources back to the system*/
-        pthread_detach(t_pid);
     }
 
     close(file);
-    int unlinker = unlink(server.fifoname);
-    if(unlinker < 0)
+    if(unlink(server.fifoname) < 0)
         perror("Error: unlinked public FIFO");
 
     exit(0);

@@ -23,7 +23,7 @@ void* un_thrd_handler(void * args){
     ((infos_ts*) args)->pid = getpid();
 
     char clientfifo[64];
-    sprintf(clientfifo, "/tmp/%d.%d", getpid(), thread_id);
+    sprintf(clientfifo, "/tmp/%d.%ld", getpid(), thread_id);
 
     if (mkfifo(clientfifo, 0660) != 0) {
         printf("error: mkfifo()\n");
@@ -63,7 +63,7 @@ void* un_thrd_handler(void * args){
 int main(int argc, char* argv[]){
     if (argc != 4) {
         printf("--- CLIENT ---\n");
-        printf("Usage: %s <-t nsecs> fifoname \n", argv[0]);
+        printf("Usage: %s [-t nsecs] [fifoname] \n", argv[0]);
         exit(1);
     }
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]){
     while(server == -1){
         server =  open(client.fifoname, O_WRONLY);
         if(server == -1){
-            printf("Server connecting . . . \n");
+            printf("Server connecting . . .\n");
             sleep(3);
         }
     }

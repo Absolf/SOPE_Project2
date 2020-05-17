@@ -2,7 +2,7 @@
 
 # Adapted from André Daniel Gomes's Test script
 
-# usage|help|info: ./test -q <server timeout> -u <client timeout> -f <server fifo>
+# usage|help|info: ./test -q <server timeout> -u <client timeout> -f <server fifo> -n <nthreads> -l <nplaces>
 
 RED='\033[1;31m'
 GREEN='\033[1;32m'
@@ -12,16 +12,16 @@ NC='\033[0m' # No Color
 serverTime=10
 clientTime=15
 fifoname='fifo.server'
-threads=0
-places=0
+nthreads=0
+nplaces=0
 
-while getopts ":q:u:f:n:l" opt; do
+while getopts ":q:u:f:n:l:" opt; do
   case $opt in
     q) serverTime=$OPTARG;;
     u) clientTime=$OPTARG;;
     f) fifoname=$OPTARG;;
-    n) threads=$OPTARG;;
-    l) places=$OPTARG;;
+    n) nthreads=$OPTARG;;
+    l) nplaces=$OPTARG;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
@@ -40,28 +40,28 @@ elif [[ ! -d logs ]]; then
 fi
 echo "Setting server timeout to "$serverTime"sec"
 echo "Setting client timeout to "$clientTime"sec"
-echo "Setting max threads to "$threads""
-echo "Setting max places to "$places""
+echo "Setting max threads to "$nthreads""
+echo "Setting max places to "$nplaces""
 echo "SERVER/CLIENT RUNNING ..."
 
-./Q2 -t $serverTime -n "$threads" -l "$places" "$fifoname" > logs/q2.log 2> logs/q2.err &  # Un <-t nsecs> fifoname
+./Q2 -t $serverTime -n "$nthreads" -l "$nplaces" "$fifoname" > logs/q2.log 2> logs/q2.err &  # Un <-t nsecs> fifoname
 P1=$!
 ./U2 -t $clientTime "$fifoname" > logs/u2.log 2> logs/u2.err &   # Qn <-t nsecs> [-l nplaces] [-n nthreads] fifoname
 P2=$!
-wait 
+wait
 echo "END OF SERVER/CLIENT"
 
 cd logs || exit
 
-nREQST=`grep IWANT u1.log | wc -l`
-nFAILD=`grep FAILD u1.log | wc -l`
-nGAVUP=`grep GAVUP q1.log | wc -l`
+nREQST=`grep IWANT u2.log | wc -l`
+nFAILD=`grep FAILD u2.log | wc -l`
+nGAVUP=`grep GAVUP q2.log | wc -l`
 
-n2LATE=`grep 2LATE q1.log | wc -l`
-nCLOSD=`grep CLOSD u1.log | wc -l`
+n2LATE=`grep 2LATE q2.log | wc -l`
+nCLOSD=`grep CLOSD u2.log | wc -l`
 
-nIAMIN=`grep IAMIN u1.log | wc -l`
-nENTER=`grep ENTER q1.log | wc -l`
+nIAMIN=`grep IAMIN u2.log | wc -l`
+nENTER=`grep ENTER q2.log | wc -l`
 nTIMUP=`grep TIMUP q2.log | wc -l`
 
 echo "Requests sent: $nREQST"
@@ -95,7 +95,7 @@ fi
 
 cd ..
 # comment this line if you wish to keep the log files (debugging purposes)
-rm -rf logs
+#rm -rf logs
 
 if [[ $valid1 -eq 1 && $valid2 -eq 1 && $valir3 -eq 1 ]] ; then
   exit 0;
