@@ -45,3 +45,5 @@ void log_maker(int id, pid_t pid, pthread_t thread_id, int dur, int pos, char *o
 
 
 
+
+

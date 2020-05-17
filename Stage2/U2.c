@@ -7,8 +7,9 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 
-
 #include "utils.h"
+
+#include "queue.h"
 
 int server;
 

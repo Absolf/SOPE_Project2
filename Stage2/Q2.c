@@ -9,8 +9,7 @@
 #include <semaphore.h>
 #include "utils.h"
 #include <stdlib.h>
-
-#include "places.h"
+#include "queue.h"
 
 static spots_ts spots; /* queue with free spots */
 static int thread_flag = 0;  /* flag that will be activated if thread numbers has a limit */
@@ -40,8 +39,7 @@ void* qn_thrd_handler(void* args){
     char fifo_path[128];
     sprintf(fifo_path, "/tmp/%d.%ld", request.pid, request.thread_id);
     /*attempt to open private fifo, sending GAVUP on failure*/
-    int client;
-
+    int client = 0;
     if((client = open(fifo_path, O_WRONLY)) < 0){
         fprintf(stderr, "Error: attempt to open private fifo with request %d\n", request.id);
         log_maker(request.id, getpid(), thread_id, request.dur, request.pos, "GAVUP");
@@ -49,10 +47,9 @@ void* qn_thrd_handler(void* args){
         //checking thread limit
         if(thread_flag){
             sem_post(&nthreads);
-        }
+        }  
         return NULL;
     }
-
 
 	/*  trying initializing the answer to the request*/
     infos_ts answer;
@@ -60,9 +57,7 @@ void* qn_thrd_handler(void* args){
     answer.pid = getpid();
     answer.thread_id = thread_id;
     answer.dur = request.dur;
-    
-    // Server will give 1 for every request in case we have infinit spots, otherwise will give the next place inside the queue
-
+    //Server will give 1 for every request in case we have infinit spots, otherwise will give the next place inside the queue
     int place = 1;
     if (thread_flag) {
         sem_wait(&nspots);
@@ -75,15 +70,14 @@ void* qn_thrd_handler(void* args){
     //if the wanted time doesn't exceed the execution time, then go
     if (time_ms() + request.dur < time_out) {
         //can't stablish conection with the client
-        if(write(client, &answer, sizeof(infos_ts)) < 0){
+        if(write(client, &answer, sizeof(infos_ts))< 0){
             fprintf(stderr, "Error: private fifo request [%d] Accepted! \n", request.id);
             log_maker(answer.id, answer.pid, answer.thread_id, answer.dur, answer.pos, "GAVUP");
             close(client);
             //thread sync
             if(thread_flag){
                 sem_post(&nthreads);
-            }
-                
+            } 
             return NULL;
         }
         //There isn't any communication with the private fifo
@@ -101,8 +95,9 @@ void* qn_thrd_handler(void* args){
             log_maker(answer.id, answer.pid, answer.thread_id, answer.dur, answer.pos, "GAVUP");
             close(client);
             //thread SYNC
-            if (thread_flag)
+            if (thread_flag){
                 sem_post(&nthreads);
+            }
             return NULL;
         }
         log_maker(answer.id, getpid(), thread_id, answer.dur, answer.pos, "2LATE");
@@ -119,25 +114,21 @@ void* qn_thrd_handler(void* args){
     return NULL;
 }
 
-
 int main(int argc, char** argv){
-	if (argc < 4 || argc > 8) {
+	if (argc <= 3 || argc >= 9) {
         printf("--- SERVER 2--- \n");
         printf("Usage: %s [-t nsec] [-l nplaces] [-t nthreads] [fifoname] \n", argv[0]);
         exit(1);
     }
-
     server_ts server = server_handler(argc, argv);
-    
-	
+
     if (mkfifo(server.fifoname, 0660) != 0) {
         perror("Error: Can't create fifo  \n");
         exit(1);
     }
-
-    printf("fifoname %s", server.fifoname);
+    
     int file = open(server.fifoname, O_RDONLY | O_NONBLOCK);
-	    
+	time_out = server.secs * 1000;
     if(server.threads){
         thread_flag = 1;
     }
@@ -145,8 +136,6 @@ int main(int argc, char** argv){
         spots_flag = 1;
     }
         
-
-
     /* Thread syncronization */
     if(thread_flag){
         sem_init(&nthreads, 0 , server.threads);
@@ -157,7 +146,6 @@ int main(int argc, char** argv){
         filler(&spots);
     }
     /* end of syncronization */
-    time_out = server.secs * 1000;
     clock_gettime(CLOCK_MONOTONIC_RAW, &begin);
     
 	while (time_out > time_ms()) {
@@ -177,7 +165,7 @@ int main(int argc, char** argv){
 
     close(file);
     if(unlink(server.fifoname) < 0)
-        perror("Error: unlinked public FIFO");
+        perror("Error: unlinking public FIFO");
 
     exit(0);
 }

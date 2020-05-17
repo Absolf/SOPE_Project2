@@ -12,7 +12,6 @@
 #include <sys/file.h>
 #include <sys/syscall.h>
 #include <signal.h>
-#include <stdbool.h>
 
 extern struct timespec begin;
 

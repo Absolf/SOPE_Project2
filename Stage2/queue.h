@@ -1,8 +1,10 @@
 
-#ifndef PLACES_PLACES_H
-#define PLACES_PLACES_H
+#ifndef QUEUES_H
+#define QUEUES_H
 
 #include <stdlib.h>
+#include <stdbool.h>
+
 
 /* Q2 structures and auxiliar functions to the queue of spots to request/be requested */
 typedef struct {
@@ -27,14 +29,14 @@ int empty(spots_ts* spot){
     return spot->lenght == 0;
 }
 
-int pushable(spots_ts* spots, int places){
+bool pushable(spots_ts* spots, int places){
     if(!(spots->lenght == spots->max_lenght)){
         spots->end = (spots->end +1) % spots->max_lenght;
         spots->queue[spots->end] = places;
         spots->lenght++;
-        return 0;
+        return false;
     }
-    return 1;
+    return true;
 }
 
 int pop_front(spots_ts* spots){
@@ -49,10 +51,11 @@ int pop_front(spots_ts* spots){
 
 int filler(spots_ts * spots){
     for(int i = 1; i <= spots->max_lenght; i++){
-        if (pushable(spots, i) != 0)
+        if (pushable(spots, i)){
             return 1;
+        }    
     }
     return 0;
 }
 
-#endif //PLACES_PLACES_H
+#endif //QUEUES_H
